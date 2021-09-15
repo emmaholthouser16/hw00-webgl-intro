@@ -86,6 +86,7 @@ float surflet(vec3 p, vec3 gridPoint) {
 
 
 //PERLIN NOISE
+
 float perlinNoise3D(vec3 p) {
 	float surfletSum = 0.f;
 	// Iterate over the four integer corners surrounding uv
@@ -146,8 +147,8 @@ void main()
         // Avoid negative lighting values
         // diffuseTerm = clamp(diffuseTerm, 0, 1);
 
-        float ambientTerm = 0.2;
-
+        float ambientTerm = 0.1;
+        diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);
         float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
                                                             //to simulate ambient lighting. This ensures that faces that are not
                                                             //lit by our point light are not completely black.

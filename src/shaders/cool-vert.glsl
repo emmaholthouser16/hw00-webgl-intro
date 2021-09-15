@@ -53,7 +53,7 @@ void main()
 
     vec4 modelposition2 = vec4(.5, 0, 0, 0);
   //  modelposition2.xyz = modelposition.xyz + (sin(modelposition.xyz) * 1.05) + (sin(modelposition.xyz) * .25);
-    modelposition2.yz = modelposition.yz + (sin(modelposition.yz) * .35);
+    modelposition2.yz = modelposition.yz + (cos(modelposition.yz) * .35);
     //modelposition2
     modelposition2.y = modelposition2.y + (sin(modelposition2.y) * .20);
     modelposition.xyz = mix(modelposition.xyz,  modelposition2.xyz, t);
