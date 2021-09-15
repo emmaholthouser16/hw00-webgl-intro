@@ -97,8 +97,6 @@ function main() {
       icosphere.create();
     }
     let R = controls.colorB;
-    //print;
-    //console.log(iTime);
     let color = vec4.fromValues((controls.color3[0] / 255), (controls.color3[1] / 255), (controls.color3[2] / 255), 1);
     renderer.render(iTime, color, camera, cool, [
       //icosphere,
