@@ -9,11 +9,15 @@
 --------------------
 In this project I created a cube object and used a mix of fbm and perlin noise to color the cube in a fragment shader and sin functions with Time to modifuly the shape of the cube in a new fragment shader. I also modified the gui by adding a color variable that controls the main color used in the noise function. 
 
-![](images/cube1.PNG)
+![](images/cube1.png)
 
-![](images/cube2.PNG)
+![](images/cube2.png)
 
-![](images/cube3.PNG)
+![](images/cube3.png)
+
+Here is the link to my project! 
+
+https://emmaholthouser16.github.io/hw00-webgl-intro/
 
 
 ## Objective
