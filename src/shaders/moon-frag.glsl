@@ -15,15 +15,13 @@ uniform vec4 u_Color; // The color with which to render this instance of geometr
 uniform float u_Time;
 uniform vec4 u_Light;
 uniform vec4 u_Shadow;
-//uniform vec3 u_CamPos;
 // These are the interpolated values out of the rasterizer, so you can't know
 // their specific values without knowing the vertices that contributed to them
 in vec4 fs_Nor;
 in vec4 fs_Pos;
 in vec4 fs_LightVec;
 in vec4 fs_Col;
-in vec4 old;
-in vec4 fs_CamPos;
+
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
 float random1( vec3 p ) {
@@ -102,6 +100,7 @@ float perlinNoise3D(vec3 p) {
 		}
 	}
 	return surfletSum;
+  //* sin(u_Time * 0.04);
 }
 
 
@@ -126,118 +125,49 @@ vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d )
 }
 
  float remapTo01(float min, float max, float t)
-            {
-                float difference = max - min;
-                float scaleFactor = 1.0 / difference;
-                t *= scaleFactor;
-                t -= (min * scaleFactor);
-                return t;
-             }
-
+  {
+      float difference = max - min;
+      float scaleFactor = 1.0 / difference;
+      t *= scaleFactor;
+      t -= (min * scaleFactor);
+      return t;
+ }
 void main()
 {
-    //color options
-    vec4 blue1 = vec4(-0.171, 0.688, 0.868, 1.f);
-    vec4 blue2 = vec4(-0.072, .1584, -0.132, 1.f);
-    vec4 blue3 =  vec4(0.748, 1.508, 1.578, 1.f);
-    vec4 blue4 = vec4(-0.322, 0.498, 0.198, 1.f);
-    float fbmBlue = perlinNoise3D(fs_Pos.xyz * 1.3) * cos(u_Time * .005);
-    vec3 oceanCol = palette(fbmBlue, blue1.xyz, blue2.xyz, blue3.xyz, blue4.xyz);
+    //color options 
+    vec3 purple1 = vec3(0.308, 0.390, 0.390);
+    vec3 purple2 = vec3(0.588, 0.398, 0.688);
+    vec3 purple3 = vec3(0.458, 0.948, 0.538);
+    vec3 purple4 = vec3(-1.332, 0.333, 0.667);
 
-    vec4 green1 = vec4(0.158, 0.508, -0.332, 1.f);
-    vec4 green2 = vec4(0.478, 0.188, 0.638, 1.f);
-    vec4 green3 = vec4(1.308, 0.948, 1.000, 1.f);
-    vec4 green4 = vec4(-0.692, 0.328, 1.178, 1.f);
-
-    float greenFBM = fbm(fs_Pos.xyz * .4, 3.0);
-    float g = clamp(length(fs_Pos.xyz) / 1.2, 0.0, 1.0);
-
-    vec3 grassCol = palette(greenFBM, green1.xyz, green2.xyz, green3.xyz, green4.xyz);
-    // Material base color (before shading)
-    vec4 greenColor = vec4(grassCol, 1.f);
-    //= vec4(104.f / 255.f,  163.f /255.f, 59.f / 255.f, 1.0);
-        vec4 blueColor = vec4(oceanCol, 1.f);
-        vec4 greyMt = vec4(.3, .3, .3, 1.f);
-        vec4 diffuseColor = blueColor;
+  vec3 pos = vec3(fs_Pos);
+        pos.x = remapTo01(0.f, .2, pos.x);
+        pos.y = remapTo01(0.f, .2, pos.y);
+        pos.z = remapTo01(0.f, .2, pos.z);
+     
+        float G = perlinNoise3D(pos * 1.1);
+        //float G = fbm(pos * .85, 2.0);
+        G = G / 2.0 + 1.0;
+        vec4 col = vec4(palette(G, purple1, purple2, purple3, purple4), 1.f);
+        
        
-
-
-        float diffuseTerm = 0.f;
-        vec4 av = normalize(fs_LightVec) + normalize(fs_CamPos);
-        vec4 avg = av / 2.0;
-        float specularIntensity = 0.f;
-        
-    
-         vec4 cam = (fs_CamPos - fs_Pos);
-         diffuseTerm = dot(normalize(fs_Nor), normalize(cam)); 
-         diffuseTerm += dot(normalize(fs_Nor), normalize(fs_LightVec));
-  
-            if (g > 0.98)
-            {
-                diffuseColor = vec4(1.f, 1.f, 1.f, 1.f);
-                vec4 cam = (fs_CamPos - fs_Pos);
-                diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-
-                specularIntensity = max(pow(dot(normalize(avg), normalize(fs_Nor)), 8.f), 0.f);
-               
-            }
-     
-            else if (g > 0.92)
-            {
-                
-             diffuseColor = greyMt;
-             diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-             specularIntensity = 0.f;
-            }
-     
-            else if (g >= 0.89)
-            {
-                float newG = remapTo01(.89, .92, g);
- 
-                vec4 green = vec4(0.0, 1.0, 0.0, 1.0);
-                vec4 white = vec4(1.0);
-                diffuseColor = mix(greyMt, greenColor, 1.0-newG);
-
-                diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-                specularIntensity = 0.f;
-            }
-            else if(g > .855)
-            {
-                diffuseColor = greenColor;
-        
-                diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-                specularIntensity = 0.f;
-            }
-            else if (g > 0.845)
-            {
-                diffuseColor = vec4(207.f / 255.f, 182.f / 255.f, 70.f / 255.f, 1.f);
-                diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
-                specularIntensity = 0.f;
-            }
-
-
-           
-         //
-        if(diffuseTerm < 0.f)
+        // Calculate the diffuse term for Lambert shading
+        //vec3 newColor = mix(newColorA, newColorB, .8);
+        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
+         if(diffuseTerm < 0.f)
         {
-            diffuseColor = diffuseColor * u_Shadow;
+            col = col * u_Shadow;
         }
         else
         {
-            diffuseColor = diffuseColor * u_Light;
+            col = col * u_Light;
         }
-        
-        vec3 diffuse3 = vec3(fs_Pos.x, fs_Pos.y, fs_Pos.z);
-      
-        // Avoid negative lighting values
-        // diffuseTerm = clamp(diffuseTerm, 0, 1);
-
         float ambientTerm = 0.2;
         diffuseTerm = clamp(diffuseTerm, 0.f, 1.f);
-        float lightIntensity = diffuseTerm + ambientTerm + specularIntensity;   //Add a small float value to the color multiplier
-                                                            //to simulate ambient lighting. This ensures that faces that are not
+        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
+                                                          //to simulate ambient lighting. This ensures that faces that are not
                                                             //lit by our point light are not completely black.
 
         // Compute final shaded color
-        out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);
+        out_Col = vec4(col.rgb * lightIntensity, 1.f);
 }

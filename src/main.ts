@@ -19,13 +19,19 @@ const controls = {
   colorG: 0,
   colorB: 0,
   color3: [0, 128, 255, 1],
+  moonSize: .2,
+  lightColor: [255, 255, 255, 1],
+  shadowColor:  [255, 255, 255, 1],
 };
 
 let icosphere: Icosphere;
+let moon: Icosphere;
 let square: Square;
 let cube: Cube;
-let prevTesselations: number = 5;
+let prevTesselations: number = 6;
 let iTime: number = 0.0;
+let prevMoon: number = 0.2;
+//let lightColo
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
   icosphere.create();
@@ -33,6 +39,9 @@ function loadScene() {
   square.create();
   cube = new Cube(vec3.fromValues(0, 0, 0));
   cube.create();
+  moon = new Icosphere(vec3.fromValues(3.5, 0, 0), controls.moonSize, 7.0);
+  moon.create();
+
 
 }
 
@@ -52,6 +61,10 @@ function main() {
   gui.add(controls, 'tesselations', 0, 8).step(1);
   gui.add(controls, 'Load Scene');
   gui.addColor(controls, "color3");
+  gui.add(controls, 'moonSize');
+  gui.addColor(controls, "lightColor")
+  gui.addColor(controls, "shadowColor")
+
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
   const gl = <WebGL2RenderingContext> canvas.getContext('webgl2');
@@ -83,6 +96,15 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/cool-frag.glsl')),
   ]);
 
+  const planet = new ShaderProgram([
+   new Shader(gl.VERTEX_SHADER, require('./shaders/planet-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/cool-frag.glsl')),
+  ]);
+
+  const moonShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/moon-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/moon-frag.glsl')),
+  ])
   // This function will be called every frame
   function tick() {
     iTime += 1;
@@ -96,12 +118,23 @@ function main() {
       icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
       icosphere.create();
     }
+    if(controls.moonSize != prevMoon)
+    {
+      prevMoon = controls.moonSize;
+      moon = new Icosphere(vec3.fromValues(3.5, 0, 0), controls.moonSize, 7.0);
+      moon.create();
+
+    }
     let R = controls.colorB;
     let color = vec4.fromValues((controls.color3[0] / 255), (controls.color3[1] / 255), (controls.color3[2] / 255), 1);
-    renderer.render(iTime, color, camera, cool, [
-      //icosphere,
-      cube
+    let light = vec4.fromValues((controls.lightColor[0] / 255), (controls.lightColor[1] / 255), (controls.lightColor[2] / 255), 1);
+    let shadow = vec4.fromValues((controls.shadowColor[0] / 255), (controls.shadowColor[1] / 255), (controls.shadowColor[2] / 255), 1);
+    renderer.render(iTime, color, camera, planet, light, shadow,[
+      icosphere,
 
+    ]);
+    renderer.render(iTime, color, camera, moonShader, light, shadow,[
+      moon,
     ]);
     stats.end();
 
